@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>DB SPACE - GitHub File Storage</title>
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family:
+                Arial,
+                Helvetica,
+                sans-serif;
+
+            background: #f4f6f8;
+            color: #1f2937;
+            min-height: 100vh;
+        }
+
+        header {
+            background: #111827;
+            color: white;
+            padding: 20px 30px;
+
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+
+            gap: 20px;
+        }
+
+        .header-left h1 {
+            font-size: 25px;
+            margin-bottom: 5px;
+        }
+
+        .header-left p {
+            font-size: 13px;
+            color: #9ca3af;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        button {
+            border: none;
+            cursor: pointer;
+            border-radius: 8px;
+            padding: 10px 16px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        #loginButton {
+            background: white;
+            color: #111827;
+        }
+
+        #loginButton:hover {
+            background: #e5e7eb;
+        }
+
+        #logoutButton {
+            background: #dc2626;
+            color: white;
+        }
+
+        #logoutButton:hover {
+            background: #b91c1c;
+        }
+
+        .container {
+            width: min(1100px, 94%);
+            margin: 30px auto;
+        }
+
+        .card {
+            background: white;
+            border-radius: 14px;
+            padding: 24px;
+            margin-bottom: 20px;
+
+            box-shadow:
+                0 4px 18px rgba(0, 0, 0, 0.06);
+        }
+
+        .login-card {
+            text-align: center;
+            padding: 50px 20px;
+        }
+
+        .login-icon {
+            font-size: 55px;
+            margin-bottom: 15px;
+        }
+
+        .login-card h2 {
+            margin-bottom: 10px;
+        }
+
+        .login-card p {
+            color: #6b7280;
+            margin-bottom: 25px;
+        }
+
+        #userInfo {
+            display: none;
+            font-size: 13px;
+            color: #d1d5db;
+        }
+
+        #userAvatar {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            vertical-align: middle;
+            margin-right: 8px;
+        }
+
+        .upload-area {
+            border: 2px dashed #cbd5e1;
+            border-radius: 12px;
+
+            padding: 40px 20px;
+            text-align: center;
+
+            transition: 0.2s;
+        }
+
+        .upload-area.dragover {
+            border-color: #2563eb;
+            background: #eff6ff;
+        }
+
+        .upload-icon {
+            font-size: 42px;
+            margin-bottom: 10px;
+        }
+
+        .upload-area h3 {
+            margin-bottom: 8px;
+        }
+
+        .upload-area p {
+            color: #6b7280;
+            margin-bottom: 20px;
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        .select-button {
+            background: #2563eb;
+            color: white;
+        }
+
+        .select-button:hover {
+            background: #1d4ed8;
+        }
+
+        #selectedFile {
+            margin-top: 15px;
+            font-size: 14px;
+            color: #374151;
+        }
+
+        #uploadButton {
+            margin-top: 15px;
+            background: #16a34a;
+            color: white;
+            display: none;
+        }
+
+        #uploadButton:hover {
+            background: #15803d;
+        }
+
+        .progress-container {
+            display: none;
+            margin-top: 20px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 10px;
+            background: #e5e7eb;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            width: 0%;
+            height: 100%;
+            background: #2563eb;
+            transition: width 0.2s;
+        }
+
+        #progressText {
+            font-size: 12px;
+            margin-top: 7px;
+            color: #6b7280;
+        }
+
+        .section-title {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .refresh-button {
+            background: #e5e7eb;
+            color: #111827;
+        }
+
+        .refresh-button:hover {
+            background: #d1d5db;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            padding: 13px 10px;
+            text-align: left;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        th {
+            background: #f9fafb;
+            font-size: 13px;
+            color: #4b5563;
+        }
+
+        td {
+            font-size: 14px;
+        }
+
+        .action-button {
+            padding: 7px 10px;
+            font-size: 12px;
+            margin-right: 5px;
+        }
+
+        .download-button {
+            background: #2563eb;
+            color: white;
+        }
+
+        .delete-button {
+            background: #dc2626;
+            color: white;
+        }
+
+        .status {
+            padding: 12px 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+
+            display: none;
+
+            font-size: 14px;
+        }
+
+        .status.success {
+            display: block;
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .status.error {
+            display: block;
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .status.info {
+            display: block;
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        #loading {
+            text-align: center;
+            color: #6b7280;
+            padding: 25px;
+        }
+
+        .empty {
+            text-align: center;
+            color: #6b7280;
+            padding: 30px;
+        }
+
+        .device-login {
+            display: none;
+            margin-top: 25px;
+            padding: 20px;
+            background: #f3f4f6;
+            border-radius: 10px;
+        }
+
+        .device-code {
+            font-size: 30px;
+            font-weight: bold;
+            letter-spacing: 4px;
+            margin: 12px 0;
+            color: #111827;
+        }
+
+        .device-url {
+            display: inline-block;
+            background: #111827;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 7px;
+            text-decoration: none;
+            margin-top: 5px;
+        }
+
+        .device-url:hover {
+            background: #374151;
+        }
+
+        @media (max-width: 700px) {
+
+            header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            table {
+                font-size: 12px;
+            }
+
+            th:nth-child(3),
+            td:nth-child(3) {
+                display: none;
+            }
+
+        }
+
+    </style>
+</head>
+
+<body>
+
+<header>
+
+    <div class="header-left">
+
+        <h1>📁 DB SPACE</h1>
+
+        <p>
+            GitHub File Storage
+            · ramumeyyappan/DB_SPACE
+        </p>
+
+    </div>
+
+    <div class="header-right">
+
+        <div id="userInfo">
+
+            <img
+                id="userAvatar"
+                src=""
+                alt="GitHub"
+            >
+
+            <span id="username"></span>
+
+        </div>
+
+        <button
+            id="loginButton"
+            onclick="loginWithGitHub()"
+        >
+            🔐 Login with GitHub
+        </button>
+
+        <button
+            id="logoutButton"
+            onclick="logoutGitHub()"
+            style="display:none;"
+        >
+            Logout
+        </button>
+
+    </div>
+
+</header>
+
+
+<div class="container">
+
+    <div
+        id="status"
+        class="status"
+    ></div>
+
+
+    <!-- LOGIN -->
+
+    <div
+        id="loginCard"
+        class="card login-card"
+    >
+
+        <div class="login-icon">
+            🔐
+        </div>
+
+        <h2>
+            Login with GitHub
+        </h2>
+
+        <p>
+            Sign in with your GitHub account
+            to access DB SPACE.
+        </p>
+
+        <button
+            class="select-button"
+            onclick="loginWithGitHub()"
+        >
+            Continue with GitHub
+        </button>
+
+
+        <div
+            id="deviceLogin"
+            class="device-login"
+        >
+
+            <strong>
+                Enter this code on GitHub
+            </strong>
+
+            <div
+                id="deviceCode"
+                class="device-code"
+            >
+                ----
+            </div>
+
+            <a
+                id="deviceUrl"
+                class="device-url"
+                href="https://github.com/login/device"
+                target="_blank"
+            >
+                Open GitHub Authorization
+            </a>
+
+            <p style="margin-top:15px;">
+                After authorization, this page
+                will automatically continue.
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <!-- APPLICATION -->
+
+    <div
+        id="appContent"
+        style="display:none;"
+    >
+
+        <!-- UPLOAD -->
+
+        <div class="card">
+
+            <h2 style="margin-bottom:20px;">
+                Upload File
+            </h2>
+
+            <div
+                id="uploadArea"
+                class="upload-area"
+            >
+
+                <div class="upload-icon">
+                    📤
+                </div>
+
+                <h3>
+                    Select or drop a file
+                </h3>
+
+                <p>
+                    Maximum file size:
+                    100 MB
+                </p>
+
+                <input
+                    type="file"
+                    id="fileInput"
+                >
+
+                <button
+                    class="select-button"
+                    onclick="document.getElementById('fileInput').click()"
+                >
+                    Select File
+                </button>
+
+                <div id="selectedFile"></div>
+
+                <button
+                    id="uploadButton"
+                    onclick="uploadFile()"
+                >
+                    ⬆ Upload to GitHub
+                </button>
+
+            </div>
+
+
+            <div
+                id="progressContainer"
+                class="progress-container"
+            >
+
+                <div class="progress-bar">
+
+                    <div
+                        id="progressFill"
+                        class="progress-fill"
+                    ></div>
+
+                </div>
+
+                <div id="progressText">
+                    Uploading...
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- FILE LIST -->
+
+        <div class="card">
+
+            <div class="section-title">
+
+                <h2>
+                    Stored Files
+                </h2>
+
+                <button
+                    class="refresh-button"
+                    onclick="loadFiles()"
+                >
+                    🔄 Refresh
+                </button>
+
+            </div>
+
+
+            <div id="loading">
+                Loading files...
+            </div>
+
+
+            <table id="fileTable">
+
+                <thead>
+
+                    <tr>
+
+                        <th>
+                            File Name
+                        </th>
+
+                        <th>
+                            Size
+                        </th>
+
+                        <th>
+                            Updated
+                        </th>
+
+                        <th>
+                            Actions
+                        </th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody id="fileList"></tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<script src="app.js"></script>
+
+</body>
+
+</html>
